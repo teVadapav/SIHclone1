@@ -1,0 +1,19 @@
+{
+  "name": "ps02-smart-crop-advisory",
+  "version": "3.0.0",
+  "description": "Smart Crop Advisory & Farmer Distress Early-Warning System (v3, Comprehensive Feasibility Edition)",
+  "main": "server/index.js",
+  "scripts": {
+    "test": "node tests/engine.test.js",
+    "seed": "node server/seed.js",
+    "start": "node server/index.js",
+    "dev:server": "node server/index.js",
+    "dev": "node server/index.js"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.8.1",
+    "cors": "^2.8.5",
+    "express": "^4.21.2"
+  },
+  "devDependencies": {}
+}

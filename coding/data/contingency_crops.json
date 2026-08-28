@@ -1,0 +1,43 @@
+[
+  {
+    "crop": "cotton",
+    "soil_type": "Red Loamy Soil",
+    "onset_delay_condition": ">15 days delay (post July 5)",
+    "recommended_contingency_crops": [
+      {
+        "name": "Pearl Millet (Bajra - ICTP 8203 / Dhanashakti)",
+        "duration_days": 80,
+        "rationale": "High drought tolerance, matures in 75-80 days, minimal water requirement during vegetative phase."
+      },
+      {
+        "name": "Pigeonpea / Red Gram (Arhar - BDN 711 / BSMR 736)",
+        "duration_days": 140,
+        "rationale": "Deep taproot system recovers after dry spells; intercropped with soybean/pearl millet."
+      },
+      {
+        "name": "Castor (DCH-177 / DCH-519)",
+        "duration_days": 120,
+        "rationale": "Excellent resilience to delayed rains in shallow red soils."
+      }
+    ],
+    "agronomic_measures": "Widen inter-row spacing to 45cm, apply straw mulch @ 5 t/ha, foliar spray of 2% Urea or 1% KNO3 during moisture stress."
+  },
+  {
+    "crop": "cotton",
+    "soil_type": "Black Cotton Soil",
+    "onset_delay_condition": ">20 days delay",
+    "recommended_contingency_crops": [
+      {
+        "name": "Early maturing Soybean (JS 9560 / JS 20-34)",
+        "duration_days": 85,
+        "rationale": "Short duration ensures harvest before terminal moisture stress in deep black soils."
+      },
+      {
+        "name": "Green Gram / Black Gram (Moong / Urad - BM 2003-2)",
+        "duration_days": 65,
+        "rationale": "Very short 60-65 day cycle captures residual moisture."
+      }
+    ],
+    "agronomic_measures": "Broad Bed and Furrow (BBF) planting to conserve in-situ rainwater."
+  }
+]

@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Krishi — Crop Advisory & Farmer Distress Early-Warning System</title>
+  <!-- Tailwind CSS CDN for utility classes -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f0fdf4',
+              100: '#dcfce7',
+              500: '#22c55e',
+              600: '#16a34a',
+              700: '#15803d',
+              800: '#166534',
+              900: '#14532d'
+            },
+            soil: {
+              500: '#854d0e',
+              700: '#713f12'
+            },
+            distress: {
+              low: '#16a34a',
+              medium: '#d97706',
+              high: '#dc2626'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="stylesheet" href="/static/styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Noto+Sans+Devanagari:wght@400;600;700&family=Noto+Sans:wght@400;600;700&family=Noto+Sans+Oriya:wght@400;600;700&family=Noto+Sans+Bengali:wght@400;600;700&family=Noto+Sans+Kannada:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Outfit', 'Noto Sans Devanagari', -apple-system, sans-serif;
+    }
+    .touch-target {
+      min-height: 56px;
+    }
+    .farmer-btn {
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .farmer-btn:active {
+      transform: scale(0.96);
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen flex flex-col">
+
+  <!-- Top Global Navigation Bar -->
+  <header class="bg-slate-900 text-white shadow-md sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        
+        <!-- Logo & Title -->
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-green-600 to-emerald-400 flex items-center justify-center text-xl font-black shadow-inner">
+            🌱
+          </div>
+          <div>
+            <div class="flex items-center space-x-2">
+              <span class="font-bold text-lg tracking-tight text-white">Smart Krishi</span>
+              <span class="bg-emerald-500/20 text-emerald-300 text-xs px-2 py-0.5 rounded-full font-mono font-semibold border border-emerald-500/30">v3.0 PS-02</span>
+            </div>
+            <p class="text-xs text-slate-400 hidden sm:block">Crop Advisory & Distress Early-Warning System</p>
+          </div>
+        </div>
+
+        <!-- Global View Mode Switcher -->
+        <nav class="flex items-center space-x-1 sm:space-x-2 bg-slate-800 p-1 rounded-xl border border-slate-700">
+          <button id="nav-farmer-btn" onclick="switchMainView('farmer')" class="px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold flex items-center space-x-1.5 transition-all bg-emerald-600 text-white shadow">
+            <span>👨‍🌾</span>
+            <span>Farmer App</span>
+          </button>
+          <button id="nav-officer-btn" onclick="switchMainView('officer')" class="px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold flex items-center space-x-1.5 transition-all text-slate-300 hover:text-white hover:bg-slate-700">
+            <span>📊</span>
+            <span>Officer Dashboard</span>
+          </button>
+          <button id="nav-simulator-btn" onclick="switchMainView('simulator')" class="px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold flex items-center space-x-1.5 transition-all text-slate-300 hover:text-white hover:bg-slate-700">
+            <span>📟</span>
+            <span>IVR / SMS Fallback</span>
+          </button>
+        </nav>
+
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Container -->
+  <main class="flex-grow max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
+
+    <!-- ========================================================================= -->
+    <!-- VIEW 1: FARMER APP (Low-Literacy, Voice-First, Assisted / Self Mode) -->
+    <!-- ========================================================================= -->
+    <div id="view-farmer" class="block space-y-6">
+      
+      <!-- Top Control Bar: Mode Toggle & Profile Switcher -->
+      <div class="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        
+        <!-- Assisted vs Self-Service Mode Toggle -->
+        <div class="flex items-center space-x-3">
+          <div id="label-access-mode" class="text-xs font-bold tracking-wider text-slate-500" data-i18n="accessMode">Access Mode:</div>
+          <div class="inline-flex p-1 bg-slate-100 rounded-xl border border-slate-200">
+            <button id="btn-mode-assisted" onclick="setFarmerAccessMode('assisted')" class="px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold flex items-center space-x-1.5 transition-all bg-emerald-700 text-white shadow-sm">
+              <span>🤝</span>
+              <span data-i18n="assistedMode">Assisted Mode (Kisan Mitra / CSC)</span>
+            </button>
+            <button id="btn-mode-self" onclick="setFarmerAccessMode('self')" class="px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold flex items-center space-x-1.5 transition-all text-slate-600 hover:text-slate-900">
+              <span>📱</span>
+              <span data-i18n="selfService">Self-Service</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Farmer Profile Selector & Language Selector -->
+        <div class="flex flex-wrap items-center gap-3">
+          
+          <!-- Farmer Dropdown -->
+          <div class="flex items-center space-x-2">
+            <label for="farmer-select" class="text-xs font-bold uppercase text-slate-500" data-i18n="selectFarmer">Select Farmer:</label>
+            <select id="farmer-select" onchange="onFarmerSelected(this.value)" class="bg-emerald-50 border-2 border-emerald-600 text-emerald-950 font-bold text-sm rounded-xl px-3 py-2 focus:ring-4 focus:ring-emerald-200 outline-none">
+              <!-- Populated dynamically -->
+            </select>
+          </div>
+
+          <!-- Language Selector -->
+          <div class="flex items-center space-x-2">
+            <label for="lang-select" class="text-xs font-bold uppercase text-slate-500" data-i18n="language">Language:</label>
+            <select id="lang-select" onchange="onLanguageChanged(this.value)" class="bg-slate-100 border border-slate-300 text-slate-800 font-bold text-sm rounded-xl px-3 py-2 outline-none">
+              <option value="en">English</option>
+              <option value="hi">हिंदी (Hindi)</option>
+              <option value="mr">मराठी (Marathi)</option>
+              <option value="or">ଓଡ଼ିଆ (Odia)</option>
+              <option value="as">অসমীয়া (Assamese)</option>
+              <option value="kn">ಕನ್ನಡ (Kannada)</option>
+            </select>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Farmer Identity & Digital Profile Bar -->
+      <div id="farmer-profile-card" class="bg-gradient-to-r from-emerald-800 to-green-700 text-white rounded-3xl p-6 sm:p-8 shadow-lg relative overflow-hidden">
+        <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div>
+            <div class="flex items-center space-x-3 mb-2">
+              <h1 id="fp-name" class="text-2xl sm:text-3xl font-extrabold tracking-tight">Ramesh Patil</h1>
+              <span id="fp-crop-badge" class="bg-yellow-400 text-slate-950 text-xs sm:text-sm font-extrabold px-3 py-1 rounded-full uppercase tracking-wider">🧅 Onion — Harvest</span>
+            </div>
+            <div class="flex flex-wrap items-center gap-y-1 gap-x-4 text-emerald-100 text-sm">
+              <span id="fp-location">📍 Chandwad, Nashik</span>
+              <span>•</span>
+              <span id="fp-landholding">📐 1.2 Hectares</span>
+              <span>•</span>
+              <span id="fp-loan">💳 Loan Due: 06 Sep 2026</span>
+            </div>
+          </div>
+
+          <!-- Adaptive Capacity Channel Badge -->
+          <div class="bg-black/20 backdrop-blur border border-white/10 rounded-2xl p-4 flex items-center space-x-4">
+            <div id="fp-channel-icon" class="text-3xl">☎️</div>
+            <div>
+              <div class="text-xs uppercase font-bold text-emerald-200 tracking-wider">Optimal Channel</div>
+              <div id="fp-channel-title" class="font-extrabold text-sm sm:text-base text-white">IVR Call & Plain SMS</div>
+              <div id="fp-device-note" class="text-xs text-emerald-100">Feature Phone (Poor Network)</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4 Large Core Action Buttons for Rural Touch Navigation -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
+        
+        <!-- Button 1: Advisory -->
+        <button onclick="showFarmerTab('advisory')" id="tab-btn-advisory" class="farmer-btn bg-white hover:bg-emerald-50 border-3 border-emerald-600 rounded-3xl p-5 sm:p-6 text-left shadow-md flex flex-col justify-between space-y-3 ring-4 ring-emerald-500/20">
+          <div class="text-4xl">🌦️</div>
+          <div>
+            <div class="text-lg sm:text-xl font-extrabold text-slate-900" id="btn-text-advisory">Crop Advisory</div>
+            <div class="text-xs text-slate-500 font-medium" data-i18n="cropAdvisorySub">Weather & Crop Care</div>
+          </div>
+          <span onclick="playButtonAudio('cropAdvisory', event)" class="tts-listen-btn inline-flex items-center gap-1 text-xs font-bold text-emerald-700 hover:bg-emerald-100 px-2 py-1 rounded-lg cursor-pointer select-none transition-all" role="button" tabindex="0"><span class="tts-label">Tap to listen 🔊</span></span>
+        </button>
+
+        <!-- Button 2: Mandi Price -->
+        <button onclick="showFarmerTab('mandi')" id="tab-btn-mandi" class="farmer-btn bg-white hover:bg-amber-50 border-2 border-slate-200 hover:border-amber-500 rounded-3xl p-5 sm:p-6 text-left shadow-sm flex flex-col justify-between space-y-3">
+          <div class="text-4xl">💰</div>
+          <div>
+            <div class="text-lg sm:text-xl font-extrabold text-slate-900" id="btn-text-mandi">Mandi Price</div>
+            <div class="text-xs text-slate-500 font-medium" data-i18n="mandiPriceSub">Market vs Govt MSP</div>
+          </div>
+          <span onclick="playButtonAudio('mandiPrice', event)" class="tts-listen-btn inline-flex items-center gap-1 text-xs font-bold text-amber-700 hover:bg-amber-100 px-2 py-1 rounded-lg cursor-pointer select-none transition-all" role="button" tabindex="0"><span class="tts-label">Tap to listen 🔊</span></span>
+        </button>
+
+        <!-- Button 3: My Alerts -->
+        <button onclick="showFarmerTab('alerts')" id="tab-btn-alerts" class="farmer-btn bg-white hover:bg-blue-50 border-2 border-slate-200 hover:border-blue-500 rounded-3xl p-5 sm:p-6 text-left shadow-sm flex flex-col justify-between space-y-3">
+          <div class="text-4xl">🔔</div>
+          <div>
+            <div class="text-lg sm:text-xl font-extrabold text-slate-900" id="btn-text-alerts">My Alerts</div>
+            <div class="text-xs text-slate-500 font-medium" data-i18n="myAlertsSub">Rain & Loan Notices</div>
+          </div>
+          <span onclick="playButtonAudio('myAlerts', event)" class="tts-listen-btn inline-flex items-center gap-1 text-xs font-bold text-blue-700 hover:bg-blue-100 px-2 py-1 rounded-lg cursor-pointer select-none transition-all" role="button" tabindex="0"><span class="tts-label">Tap to listen 🔊</span></span>
+        </button>
+
+        <!-- Button 4: Govt Schemes -->
+        <button onclick="showFarmerTab('schemes')" id="tab-btn-schemes" class="farmer-btn bg-white hover:bg-purple-50 border-2 border-slate-200 hover:border-purple-500 rounded-3xl p-5 sm:p-6 text-left shadow-sm flex flex-col justify-between space-y-3">
+          <div class="text-4xl">🏛️</div>
+          <div>
+            <div class="text-lg sm:text-xl font-extrabold text-slate-900" id="btn-text-schemes">Govt Schemes</div>
+            <div class="text-xs text-slate-500 font-medium" data-i18n="govtSchemesSub">PMFBY, KCC & Relief</div>
+          </div>
+          <span onclick="playButtonAudio('govtSchemes', event)" class="tts-listen-btn inline-flex items-center gap-1 text-xs font-bold text-purple-700 hover:bg-purple-100 px-2 py-1 rounded-lg cursor-pointer select-none transition-all" role="button" tabindex="0"><span class="tts-label">Tap to listen 🔊</span></span>
+        </button>
+
+      </div>
+
+      <!-- Tab Content Sections -->
+      <div class="bg-white rounded-3xl p-6 sm:p-8 shadow-md border border-slate-200">
+        
+        <!-- Tab 1: Advisory Section -->
+        <div id="farmer-tab-advisory" class="space-y-6">
+          
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
+            <div>
+              <span id="advisory-badge" class="px-3 py-1 rounded-full text-xs font-extrabold bg-red-100 text-red-700 uppercase tracking-wider">MARKET INTERVENTION (R-30)</span>
+              <h2 id="advisory-title" class="text-xl sm:text-2xl font-black text-slate-900 mt-2">Current Mandi price is below Govt MSP</h2>
+            </div>
+            
+            <!-- Spoken Audio Player Button -->
+            <button id="btn-play-voice" onclick="playCurrentAdvisoryAudio()" class="px-5 py-3 rounded-2xl bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold flex items-center justify-center space-x-2 shadow-lg shadow-emerald-700/20 active:scale-95 transition-all touch-target">
+              <span id="voice-icon" class="text-2xl">🔊</span>
+              <span id="voice-btn-text" class="text-base">Play Spoken Advisory (आवाज ऐका)</span>
+            </button>
+          </div>
+
+          <!-- Plain Language Spoken Text Display (High Contrast) -->
+          <div class="bg-slate-50 border-2 border-slate-200 rounded-2xl p-6">
+            <p id="advisory-spoken-text" class="text-lg sm:text-xl font-bold text-slate-900 leading-relaxed">
+              Loading advisory...
+            </p>
+          </div>
+
+          <!-- Contingency Crop Card (if applicable) -->
+          <div id="contingency-box" class="hidden bg-amber-50 border-2 border-amber-300 rounded-2xl p-6 space-y-3">
+            <div class="flex items-center space-x-2 text-amber-800 font-extrabold text-base">
+              <span>🌾</span>
+              <span>ICAR-CRIDA Contingency Crop Recommendations:</span>
+            </div>
+            <div id="contingency-crops-list" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <!-- Rendered dynamically -->
+            </div>
+          </div>
+
+          <!-- Weather & Soil Quick Context Bar with Tap-to-Listen -->
+          <div class="space-y-2 pt-2">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-black text-slate-500 uppercase tracking-wider flex items-center space-x-1.5" data-i18n="weatherContextTitle">
+                <span>🌦️</span><span>Weather & Soil Indicators</span>
+              </span>
+              <button onclick="playWeatherMetricAudio('all')" class="text-xs font-extrabold text-emerald-700 hover:text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 px-3 py-1 rounded-lg transition flex items-center space-x-1 shadow-sm active:scale-95 cursor-pointer">
+                <span>🔊</span><span data-i18n="listenAllWeather">Listen Weather & Soil 🔊</span>
+              </button>
+            </div>
+
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
+              <button type="button" onclick="playWeatherMetricAudio('rainfall')" title="Tap to listen" class="group p-3.5 bg-slate-50 hover:bg-blue-50/90 rounded-2xl border border-slate-200 hover:border-blue-300 transition-all text-center flex flex-col justify-between cursor-pointer shadow-sm hover:shadow-md active:scale-95">
+                <div class="flex items-center justify-between w-full mb-1">
+                  <div class="text-[11px] text-slate-500 group-hover:text-blue-700 font-bold text-left" data-i18n="rainDevLabel">Rainfall Deviation</div>
+                  <span class="text-xs opacity-70 group-hover:opacity-100 group-hover:scale-125 transition">🔊</span>
+                </div>
+                <div id="ctx-rainfall" class="text-sm sm:text-base font-black text-slate-800 group-hover:text-blue-950">-41.7% Deficit</div>
+                <div class="text-[10px] text-slate-400 group-hover:text-blue-600 font-semibold mt-1" data-i18n="tapToListenShort">Tap to listen 🔊</div>
+              </button>
+
+              <button type="button" onclick="playWeatherMetricAudio('dryspell')" title="Tap to listen" class="group p-3.5 bg-slate-50 hover:bg-amber-50/90 rounded-2xl border border-slate-200 hover:border-amber-300 transition-all text-center flex flex-col justify-between cursor-pointer shadow-sm hover:shadow-md active:scale-95">
+                <div class="flex items-center justify-between w-full mb-1">
+                  <div class="text-[11px] text-slate-500 group-hover:text-amber-700 font-bold text-left" data-i18n="drySpellLabel">Dry Spell Length</div>
+                  <span class="text-xs opacity-70 group-hover:opacity-100 group-hover:scale-125 transition">🔊</span>
+                </div>
+                <div id="ctx-dryspell" class="text-sm sm:text-base font-black text-slate-800 group-hover:text-amber-950">8 Days</div>
+                <div class="text-[10px] text-slate-400 group-hover:text-amber-600 font-semibold mt-1" data-i18n="tapToListenShort">Tap to listen 🔊</div>
+              </button>
+
+              <button type="button" onclick="playWeatherMetricAudio('onset')" title="Tap to listen" class="group p-3.5 bg-slate-50 hover:bg-indigo-50/90 rounded-2xl border border-slate-200 hover:border-indigo-300 transition-all text-center flex flex-col justify-between cursor-pointer shadow-sm hover:shadow-md active:scale-95">
+                <div class="flex items-center justify-between w-full mb-1">
+                  <div class="text-[11px] text-slate-500 group-hover:text-indigo-700 font-bold text-left" data-i18n="monsoonOnsetLabel">Monsoon Onset</div>
+                  <span class="text-xs opacity-70 group-hover:opacity-100 group-hover:scale-125 transition">🔊</span>
+                </div>
+                <div id="ctx-onset" class="text-sm sm:text-base font-black text-slate-800 group-hover:text-indigo-950">Normal</div>
+                <div class="text-[10px] text-slate-400 group-hover:text-indigo-600 font-semibold mt-1" data-i18n="tapToListenShort">Tap to listen 🔊</div>
+              </button>
+
+              <button type="button" onclick="playWeatherMetricAudio('soil')" title="Tap to listen" class="group p-3.5 bg-slate-50 hover:bg-emerald-50/90 rounded-2xl border border-slate-200 hover:border-emerald-300 transition-all text-center flex flex-col justify-between cursor-pointer shadow-sm hover:shadow-md active:scale-95">
+                <div class="flex items-center justify-between w-full mb-1">
+                  <div class="text-[11px] text-slate-500 group-hover:text-emerald-700 font-bold text-left" data-i18n="soilTypeLabel">Soil Type</div>
+                  <span class="text-xs opacity-70 group-hover:opacity-100 group-hover:scale-125 transition">🔊</span>
+                </div>
+                <div id="ctx-soil" class="text-sm sm:text-base font-black text-slate-800 group-hover:text-emerald-950">Black Cotton</div>
+                <div class="text-[10px] text-slate-400 group-hover:text-emerald-600 font-semibold mt-1" data-i18n="tapToListenShort">Tap to listen 🔊</div>
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Tab 2: Mandi Price vs MSP Section -->
+        <div id="farmer-tab-mandi" class="hidden space-y-6">
+          <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+            <div>
+              <span class="px-3 py-1 rounded-full text-xs font-extrabold bg-amber-100 text-amber-800 uppercase tracking-wider">APMC Market Surveillance</span>
+              <h2 class="text-xl sm:text-2xl font-black text-slate-900 mt-2">Mandi Price vs Government MSP</h2>
+            </div>
+            <div class="text-right">
+              <span id="mandi-name" class="text-xs font-bold text-slate-500">Lasalgaon APMC</span>
+              <div class="text-xs text-slate-400">Updated: 25 Aug 2026</div>
+            </div>
+          </div>
+
+          <!-- MSP Comparison Banner & Warning -->
+          <div id="mandi-alert-box" class="bg-red-50 border-2 border-red-400 rounded-2xl p-5 text-red-950 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div class="flex items-start space-x-3">
+              <div class="text-3xl">⚠️</div>
+              <div>
+                <div class="font-extrabold text-lg">Price is BELOW Government MSP!</div>
+                <p id="mandi-alert-text" class="text-sm font-medium mt-0.5">Current market rate is below MSP. Do NOT sell in distress. Consider e-NAM pledge loan or WDRA warehousing.</p>
+              </div>
+            </div>
+            <span class="bg-red-600 text-white font-black text-xs px-3 py-1.5 rounded-lg whitespace-nowrap">Distress Warning</span>
+          </div>
+
+          <!-- Price Display Cards -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            
+            <!-- Current Price Card -->
+            <div class="bg-slate-50 border-2 border-slate-200 rounded-2xl p-6 text-center space-y-2">
+              <div class="text-sm font-bold text-slate-500 uppercase tracking-wider">Today's Mandi Price</div>
+              <div id="mandi-current-price" class="text-4xl sm:text-5xl font-black text-slate-900">₹1,100</div>
+              <div class="text-xs text-slate-500 font-semibold">per Quintal</div>
+            </div>
+
+            <!-- Govt MSP Line Card -->
+            <div class="bg-emerald-50 border-2 border-emerald-400 rounded-2xl p-6 text-center space-y-2 relative overflow-hidden">
+              <div class="absolute top-2 right-2 bg-emerald-600 text-white text-[10px] font-black uppercase px-2 py-0.5 rounded">Govt Floor Price</div>
+              <div class="text-sm font-bold text-emerald-800 uppercase tracking-wider">Government MSP</div>
+              <div id="mandi-msp-price" class="text-4xl sm:text-5xl font-black text-emerald-900">₹1,500</div>
+              <div class="text-xs text-emerald-700 font-semibold">per Quintal (Guaranteed Benchmark)</div>
+            </div>
+
+          </div>
+
+          <!-- Action Recommendation for Price Crash -->
+          <div class="bg-slate-900 text-white rounded-2xl p-6 space-y-3">
+            <div class="text-sm font-bold text-emerald-400 uppercase tracking-wider">Recommended Market Action:</div>
+            <p class="text-sm sm:text-base leading-relaxed text-slate-200">
+              1. <strong>Avoid immediate Mandi distress sale:</strong> Current mandi realization causes an estimated ₹400/quintal loss.<br>
+              2. <strong>e-NAM & WDRA Warehouse Receipt:</strong> Store produce in nearby WDRA warehouse and avail 70% pledge loan at 7% interest.<br>
+              3. <strong>PM-AASHA Enrollment:</strong> Register at the Taluka procurement center for government price deficit support.
+            </p>
+          </div>
+
+        </div>
+
+        <!-- Tab 3: Alerts Section -->
+        <div id="farmer-tab-alerts" class="hidden space-y-6">
+          <div class="pb-4 border-b border-slate-100">
+            <span class="px-3 py-1 rounded-full text-xs font-extrabold bg-blue-100 text-blue-800 uppercase tracking-wider">Notifications & Reminders</span>
+            <h2 class="text-xl sm:text-2xl font-black text-slate-900 mt-2">Active Notifications for Your Farm</h2>
+          </div>
+
+          <div id="farmer-alerts-container" class="space-y-4">
+            <!-- Populated dynamically -->
+          </div>
+        </div>
+
+        <!-- Tab 4: Govt Schemes Section -->
+        <div id="farmer-tab-schemes" class="hidden space-y-6">
+          <div class="pb-4 border-b border-slate-100">
+            <span class="px-3 py-1 rounded-full text-xs font-extrabold bg-purple-100 text-purple-800 uppercase tracking-wider">Government Safety Net</span>
+            <h2 class="text-xl sm:text-2xl font-black text-slate-900 mt-2">Eligible Schemes Based on Your Stress Signals</h2>
+          </div>
+
+          <div id="farmer-schemes-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Populated dynamically -->
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- VIEW 2: OFFICER DASHBOARD ( literate, desktop-first data table & sliders) -->
+    <!-- ========================================================================= -->
+    <div id="view-officer" class="hidden space-y-6">
+      
+      <!-- Officer Header & Spoken Briefing Banner -->
+      <div class="bg-white p-5 sm:p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <span class="px-3 py-1 rounded-full text-xs font-extrabold bg-emerald-100 text-emerald-800 uppercase tracking-wider" data-i18n="officerBadge">Administration & Extension Portal</span>
+          <h1 class="text-2xl font-black text-slate-900 mt-1" data-i18n="officerMainTitle">District Agro-Distress Monitoring & Interventions</h1>
+          <p class="text-xs sm:text-sm text-slate-500 mt-0.5" data-i18n="officerMainSub">ICAR-CRIDA FDI framework early-warning dashboard for block agriculture officers and field workers.</p>
+        </div>
+        <button id="btn-officer-briefing" onclick="playOfficerBriefingAudio()" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-bold text-xs sm:text-sm flex items-center space-x-2 shadow-md transition whitespace-nowrap self-start sm:self-auto">
+          <span>🔊</span>
+          <span data-i18n="playOfficerBriefing">Listen to District Briefing</span>
+        </button>
+      </div>
+
+      <!-- Top Metrics Summary Cards -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+          <div class="text-xs font-bold text-slate-500 uppercase tracking-wider" data-i18n="metricTotal">Total Monitored</div>
+          <div id="metric-total" class="text-3xl font-black text-slate-900 mt-1">6</div>
+          <div class="text-xs text-slate-400 mt-1" data-i18n="metricTotalSub">Across 3 Agro-Districts</div>
+        </div>
+        <div class="bg-white p-5 rounded-2xl border border-red-200 bg-red-50/30 shadow-sm">
+          <div class="text-xs font-bold text-red-600 uppercase tracking-wider" data-i18n="metricHigh">High Risk Alert</div>
+          <div id="metric-high" class="text-3xl font-black text-red-600 mt-1">2</div>
+          <div class="text-xs text-red-500 mt-1" data-i18n="metricHighSub">Immediate intervention required</div>
+        </div>
+        <div class="bg-white p-5 rounded-2xl border border-amber-200 bg-amber-50/30 shadow-sm">
+          <div class="text-xs font-bold text-amber-600 uppercase tracking-wider" data-i18n="metricMed">Medium Risk</div>
+          <div id="metric-med" class="text-3xl font-black text-amber-600 mt-1">3</div>
+          <div class="text-xs text-amber-500 mt-1" data-i18n="metricMedSub">Under advisory monitoring</div>
+        </div>
+        <div class="bg-white p-5 rounded-2xl border border-green-200 bg-green-50/30 shadow-sm">
+          <div class="text-xs font-bold text-green-600 uppercase tracking-wider" data-i18n="metricLow">Low Risk</div>
+          <div id="metric-low" class="text-3xl font-black text-green-600 mt-1">1</div>
+          <div class="text-xs text-green-500 mt-1" data-i18n="metricLowSub">Stable agronomic conditions</div>
+        </div>
+      </div>
+
+      <!-- 4-Weight Interactive Sliders Panel -->
+      <div class="bg-slate-900 text-white rounded-3xl p-6 shadow-xl border border-slate-800">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-800">
+          <div>
+            <h2 class="text-lg font-extrabold text-white flex items-center space-x-2">
+              <span>⚙️</span>
+              <span data-i18n="calibratorTitle">CRIDA FDI Weight Calibrator — 6 Dimensions</span>
+            </h2>
+            <p class="text-xs text-slate-400" data-i18n="calibratorSub">Adjust dimension weights (ICAR-CRIDA FDI Framework). Sliders auto-normalize to 100% and re-rank the farmer list live. DF shown to officer only.</p>
+          </div>
+          <button onclick="resetDistressWeights()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-300 border border-slate-700 transition" data-i18n="resetDefaults">
+            Reset to CRIDA Defaults (25/15/15/15/20/10)
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 pt-5">
+          
+          <!-- Slider 1: Exposure (E) — Climate & Price Hazard -->
+          <div class="space-y-2">
+            <div class="flex justify-between text-xs font-bold">
+              <span class="text-blue-400" data-i18n="sliderExposure">🌦️ E — Exposure (Climate & Price)</span>
+              <span id="label-w-exposure" class="font-mono text-white">25%</span>
+            </div>
+            <input type="range" id="slider-w-exposure" min="0" max="100" value="25" oninput="onWeightSliderChange()" class="w-full accent-blue-500 cursor-pointer">
+            <div class="text-[11px] text-slate-400" data-i18n="sliderExposureSub">Rainfall deficit + MSP price shortfall exposure (Dim. 1)</div>
+          </div>
+
+          <!-- Slider 2: Sensitivity (S) — Irrigation -->
+          <div class="space-y-2">
+            <div class="flex justify-between text-xs font-bold">
+              <span class="text-cyan-400" data-i18n="sliderSensitivity">💧 S — Sensitivity (Irrigation)</span>
+              <span id="label-w-sensitivity" class="font-mono text-white">15%</span>
+            </div>
+            <input type="range" id="slider-w-sensitivity" min="0" max="100" value="15" oninput="onWeightSliderChange()" class="w-full accent-cyan-500 cursor-pointer">
+            <div class="text-[11px] text-slate-400" data-i18n="sliderSensitivitySub">Irrigation dependency: rainfed / borewell / canal (Dim. 2)</div>
+          </div>
+
+          <!-- Slider 3: Adaptive Capacity (AC) — Landholding & Income -->
+          <div class="space-y-2">
+            <div class="flex justify-between text-xs font-bold">
+              <span class="text-emerald-400" data-i18n="sliderAC">🌱 AC — Adaptive Capacity (Inverted)</span>
+              <span id="label-w-ac" class="font-mono text-white">15%</span>
+            </div>
+            <input type="range" id="slider-w-ac" min="0" max="100" value="15" oninput="onWeightSliderChange()" class="w-full accent-emerald-500 cursor-pointer">
+            <div class="text-[11px] text-slate-400" data-i18n="sliderACSub">Landholding size + income diversification (Dim. 3, inverted)</div>
+          </div>
+
+          <!-- Slider 4: Mitigation Deficit (M) — PMFBY / KCC Gap -->
+          <div class="space-y-2">
+            <div class="flex justify-between text-xs font-bold">
+              <span class="text-amber-400" data-i18n="sliderMitigation">🏛️ M — Mitigation Deficit (PMFBY/KCC)</span>
+              <span id="label-w-mitigation" class="font-mono text-white">15%</span>
+            </div>
+            <input type="range" id="slider-w-mitigation" min="0" max="100" value="15" oninput="onWeightSliderChange()" class="w-full accent-amber-500 cursor-pointer">
+            <div class="text-[11px] text-slate-400" data-i18n="sliderMitigationSub">Uninsured & no KCC = maximum deficit (Dim. 4)</div>
+          </div>
+
+          <!-- Slider 5: Trigger (T) — Loan & Informal Debt -->
+          <div class="space-y-2">
+            <div class="flex justify-between text-xs font-bold">
+              <span class="text-purple-400" data-i18n="sliderTrigger">💳 T — Trigger (Loan & Informal Debt)</span>
+              <span id="label-w-trigger" class="font-mono text-white">20%</span>
+            </div>
+            <input type="range" id="slider-w-trigger" min="0" max="100" value="20" oninput="onWeightSliderChange()" class="w-full accent-purple-500 cursor-pointer">
+            <div class="text-[11px] text-slate-400" data-i18n="sliderTriggerSub">Loan urgency + moneylender informal debt shock (Dim. 5)</div>
+          </div>
+
+          <!-- Slider 6: District Fragility (DF) — Historical Vulnerability (Officer-only) -->
+          <div class="space-y-2">
+            <div class="flex justify-between text-xs font-bold">
+              <span class="text-rose-400" data-i18n="sliderDF">🏔️ DF — District Fragility (Officer-only)</span>
+              <span id="label-w-df" class="font-mono text-white">10%</span>
+            </div>
+            <input type="range" id="slider-w-df" min="0" max="100" value="10" oninput="onWeightSliderChange()" class="w-full accent-rose-500 cursor-pointer">
+            <div class="text-[11px] text-slate-400" data-i18n="sliderDFSub">Historical agrarian crisis index — not shown to farmers (Dim. 6)</div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Officer Farmer Data Table -->
+      <div class="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="p-6 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-xl font-extrabold text-slate-900" data-i18n="registryTitle">Farmer Distress Early-Warning Registry</h2>
+            <p class="text-xs text-slate-500 mt-0.5" data-i18n="registrySub">Ranked by compound distress risk score. Maps individual triggers directly to actionable government interventions.</p>
+          </div>
+          <div class="flex items-center space-x-2">
+            <span class="text-xs text-slate-500 font-semibold" data-i18n="filterLabel">Filter:</span>
+            <select id="filter-risk" onchange="applyOfficerFilters()" class="text-xs font-bold bg-slate-100 border border-slate-300 rounded-lg px-2.5 py-1.5 outline-none">
+              <option value="ALL" data-i18n="filterAll">All Risk Bands</option>
+              <option value="High" data-i18n="filterHigh">High Risk Only (71-100)</option>
+              <option value="Medium" data-i18n="filterMed">Medium Risk (41-70)</option>
+              <option value="Low" data-i18n="filterLow">Low Risk (0-40)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm text-slate-700">
+            <thead class="bg-slate-50 text-slate-900 uppercase font-bold text-xs border-b border-slate-200">
+              <tr>
+                <th class="px-6 py-4" data-i18n="thFarmerVillage">Farmer & Village</th>
+                <th class="px-4 py-4" data-i18n="thDistrict">District</th>
+                <th class="px-4 py-4" data-i18n="thCropStage">Crop & Stage</th>
+                <th class="px-4 py-4" data-i18n="thDistressScore">Distress Score</th>
+                <th class="px-4 py-4" data-i18n="thTopTrigger">Top Trigger Signal</th>
+                <th class="px-4 py-4" data-i18n="thRecommendedScheme">Recommended Scheme</th>
+                <th class="px-4 py-4" data-i18n="thContactChannel">Contact Channel</th>
+                <th class="px-6 py-4 text-right" data-i18n="thActions">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="officer-table-body" class="divide-y divide-slate-100">
+              <!-- Rendered dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- VIEW 3: SMS & IVR FALLBACK SIMULATOR (Adaptive Capacity for Basic Phones) -->
+    <!-- ========================================================================= -->
+    <div id="view-simulator" class="hidden space-y-6">
+      
+      <div class="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-slate-200">
+        <div class="max-w-3xl">
+          <span class="px-3 py-1 rounded-full text-xs font-extrabold bg-blue-100 text-blue-800 uppercase tracking-wider" data-i18n="simBadge">Adaptive Capacity Fallback Layer</span>
+          <h2 class="text-2xl font-black text-slate-900 mt-2" data-i18n="simTitle">Interactive IVR Voice & Plain-Text SMS Simulator</h2>
+          <p class="text-sm text-slate-600 mt-1" data-i18n="simSub">
+            Over 65% of smallholder farmers in vulnerable districts operate basic feature phones or suffer from 2G/poor rural network.
+            This simulator demonstrates how the system delivers actionable advisories and distress warnings via automated voice calls (IVR) and plain-text SMS.
+          </p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        
+        <!-- Left: Interactive IVR Phone Keypad Simulator -->
+        <div class="bg-slate-900 text-white rounded-3xl p-6 shadow-xl border border-slate-800 flex flex-col justify-between space-y-6">
+          
+          <div>
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-800 pb-3 mb-4 gap-2">
+              <div class="flex items-center space-x-2">
+                <span class="text-2xl">☎️</span>
+                <div>
+                  <h3 class="font-extrabold text-base text-white" data-i18n="ivrHeaderTitle">Interactive IVR Voice Call</h3>
+                  <div class="text-xs text-emerald-400">Connected: Kisan Helpline 1800-180-1551</div>
+                </div>
+              </div>
+              
+              <div class="flex items-center space-x-2 self-end sm:self-auto">
+                <!-- IVR Dedicated Language Selector -->
+                <div class="flex items-center space-x-1 bg-slate-800 px-2 py-1 rounded-lg border border-slate-700">
+                  <span class="text-xs text-amber-400">🌐</span>
+                  <select id="sim-ivr-lang-select" onchange="onIvrLanguageSelect(this.value)" class="bg-transparent text-emerald-300 text-xs font-bold outline-none cursor-pointer">
+                    <option value="hi" class="bg-slate-900 text-white">हिंदी (Hindi)</option>
+                    <option value="mr" class="bg-slate-900 text-white">मराठी (Marathi)</option>
+                    <option value="or" class="bg-slate-900 text-white">ଓଡ଼ିଆ (Odia)</option>
+                    <option value="as" class="bg-slate-900 text-white">অসমীয়া (Assamese)</option>
+                    <option value="kn" class="bg-slate-900 text-white">ಕನ್ನಡ (Kannada)</option>
+                    <option value="en" class="bg-slate-900 text-white">English</option>
+                  </select>
+                </div>
+
+                <select id="sim-farmer-select" onchange="onSimFarmerChange(this.value)" class="bg-slate-800 text-white text-xs font-bold rounded-lg px-2.5 py-1.5 border border-slate-700">
+                  <!-- Populated dynamically -->
+                </select>
+              </div>
+            </div>
+
+            <!-- Virtual Phone Screen / Speaker Prompt Display -->
+            <div class="bg-slate-950 border border-slate-800 rounded-2xl p-5 space-y-3 font-mono">
+              <div class="flex items-center justify-between text-xs text-slate-500">
+                <span id="ivr-status-pill" class="text-emerald-400 font-bold">● IN CALL (00:14)</span>
+                <span id="ivr-lang-pill" class="text-amber-400 font-bold">LANG: HI</span>
+              </div>
+              <div id="ivr-screen-text" class="text-sm text-slate-200 leading-relaxed font-sans font-medium min-h-[90px]">
+                Connecting to farmer...
+              </div>
+              <div class="flex items-center justify-between pt-2 border-t border-slate-900 text-xs">
+                <button onclick="playIvrAudioPrompt()" class="text-emerald-400 hover:text-emerald-300 font-bold flex items-center space-x-1 font-sans">
+                  <span>🔊</span>
+                  <span data-i18n="ivrSpeakPrompt">Speak Prompt (TTS)</span>
+                </button>
+                <button onclick="startIvrCall()" class="text-slate-400 hover:text-white font-sans" data-i18n="ivrRestartCall">Restart Call 🔄</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Keypad Matrix -->
+          <div>
+            <div class="text-xs font-bold uppercase text-slate-400 mb-3 text-center" data-i18n="pressKeypad">Press Phone Keypad:</div>
+            <div class="grid grid-cols-3 gap-3 max-w-xs mx-auto">
+              <button onclick="pressIvrKey('1')" class="bg-slate-800 hover:bg-emerald-700 active:scale-95 text-white font-black text-xl py-3 rounded-2xl border border-slate-700 transition flex flex-col items-center">
+                <span>1</span>
+                <span class="text-[9px] font-normal text-slate-400" data-i18n="keyAdvisory">ADVISORY</span>
+              </button>
+              <button onclick="pressIvrKey('2')" class="bg-slate-800 hover:bg-emerald-700 active:scale-95 text-white font-black text-xl py-3 rounded-2xl border border-slate-700 transition flex flex-col items-center">
+                <span>2</span>
+                <span class="text-[9px] font-normal text-slate-400" data-i18n="keyMandi">MANDI/MSP</span>
+              </button>
+              <button onclick="pressIvrKey('3')" class="bg-slate-800 hover:bg-emerald-700 active:scale-95 text-white font-black text-xl py-3 rounded-2xl border border-slate-700 transition flex flex-col items-center">
+                <span>3</span>
+                <span class="text-[9px] font-normal text-slate-400" data-i18n="keySchemes">SCHEMES</span>
+              </button>
+              <button onclick="pressIvrKey('4')" class="bg-slate-800/50 text-slate-500 font-black text-xl py-3 rounded-2xl border border-slate-800 transition">4</button>
+              <button onclick="pressIvrKey('5')" class="bg-slate-800/50 text-slate-500 font-black text-xl py-3 rounded-2xl border border-slate-800 transition">5</button>
+              <button onclick="pressIvrKey('6')" class="bg-slate-800/50 text-slate-500 font-black text-xl py-3 rounded-2xl border border-slate-800 transition">6</button>
+              <button onclick="pressIvrKey('*')" class="bg-slate-800 hover:bg-emerald-700 active:scale-95 text-white font-black text-xl py-3 rounded-2xl border border-slate-700 transition flex flex-col items-center">
+                <span>*</span>
+                <span class="text-[9px] font-normal text-slate-400">⌂ MENU</span>
+              </button>
+              <button onclick="pressIvrKey('0')" class="bg-slate-800 hover:bg-emerald-700 active:scale-95 text-white font-black text-xl py-3 rounded-2xl border border-slate-700 transition flex flex-col items-center">
+                <span>0</span>
+                <span class="text-[9px] font-normal text-slate-400" data-i18n="keyOfficer">OFFICER</span>
+              </button>
+              <button onclick="pressIvrKey('9')" class="bg-slate-800 hover:bg-amber-600 active:scale-95 text-white font-black text-xl py-3 rounded-2xl border border-amber-500/50 transition flex flex-col items-center shadow-lg">
+                <span>9</span>
+                <span class="text-[9px] font-extrabold text-amber-300">🌐 LANG</span>
+              </button>
+            </div>
+
+            <!-- Keypad Language Quick-Switch Bar -->
+            <div class="mt-4 pt-3 border-t border-slate-800 text-center">
+              <div class="text-[11px] font-bold text-slate-400 mb-2 flex items-center justify-center space-x-1">
+                <span>🌐</span>
+                <span data-i18n="quickLangSwitch">Keypad Language Direct Switch:</span>
+              </div>
+              <div class="flex flex-wrap gap-1.5 justify-center">
+                <button onclick="switchIvrLanguage('hi')" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-800 hover:bg-emerald-600 text-slate-200 border border-slate-700 transition">हिंदी (91)</button>
+                <button onclick="switchIvrLanguage('mr')" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-800 hover:bg-emerald-600 text-slate-200 border border-slate-700 transition">मराठी (92)</button>
+                <button onclick="switchIvrLanguage('or')" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-800 hover:bg-emerald-600 text-slate-200 border border-slate-700 transition">ଓଡ଼ିଆ (93)</button>
+                <button onclick="switchIvrLanguage('as')" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-800 hover:bg-emerald-600 text-slate-200 border border-slate-700 transition">অসমীয়া (94)</button>
+                <button onclick="switchIvrLanguage('kn')" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-800 hover:bg-emerald-600 text-slate-200 border border-slate-700 transition">ಕನ್ನಡ (95)</button>
+                <button onclick="switchIvrLanguage('en')" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-800 hover:bg-emerald-600 text-slate-200 border border-slate-700 transition">English (96)</button>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+        <!-- Right: Feature Phone SMS Screen Emulator -->
+        <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-200 flex flex-col justify-between space-y-6">
+          
+          <div>
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
+              <div class="flex items-center space-x-2">
+                <span class="text-2xl">📱</span>
+                <div>
+                  <h3 class="font-extrabold text-base text-slate-900" data-i18n="smsEmulatorTitle">Feature Phone SMS Emulator</h3>
+                  <div class="text-xs text-slate-500" data-i18n="smsEmulatorSub">Plain-text 160-character GSM SMS Delivery</div>
+                </div>
+              </div>
+              <button onclick="triggerSmsDelivery()" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg shadow transition" data-i18n="sendTestSms">
+                Send Test SMS 📨
+              </button>
+            </div>
+
+            <!-- Simulated Feature Phone Monochrome Screen -->
+            <div class="bg-emerald-950 border-4 border-slate-800 rounded-3xl p-6 text-emerald-300 font-mono shadow-inner space-y-4">
+              <div class="flex items-center justify-between text-[11px] text-emerald-500 pb-2 border-b border-emerald-900">
+                <span>SMS FROM: GOV-KRISHI</span>
+                <span id="sms-time">16:45 IST</span>
+              </div>
+              
+              <div id="sms-screen-body" class="text-sm font-semibold leading-relaxed tracking-wide text-emerald-100 min-h-[120px]">
+                Loading SMS payload...
+              </div>
+
+              <div class="flex items-center justify-between text-[10px] text-emerald-500 pt-2 border-t border-emerald-900">
+                <span id="sms-char-count">Length: 142 chars (1 SMS)</span>
+                <span class="text-emerald-400 font-bold">STATUS: DELIVERED ✔</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Explanatory note -->
+          <div class="bg-slate-50 rounded-2xl p-4 border border-slate-200 text-xs text-slate-600 space-y-1.5">
+            <div class="font-bold text-slate-800" data-i18n="simDesignNoteTitle">Adaptive Capacity Design Validation:</div>
+            <p data-i18n="simDesignNote1">• Plain text without markdown ensures 100% compatibility on 2G feature phones.</p>
+            <p data-i18n="simDesignNote2">• Standardized toll-free helpline number allows immediate one-touch callback.</p>
+            <p data-i18n="simDesignNote3">• Automatically localized into farmer's registered language preference.</p>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL: Officer Detail Drawer / Modal -->
+  <!-- ========================================================================= -->
+  <div id="officer-detail-modal" class="hidden fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl border border-slate-200 max-h-[90vh] overflow-y-auto space-y-6">
+      
+      <div class="flex items-start justify-between border-b border-slate-100 pb-4">
+        <div>
+          <div class="flex items-center space-x-2">
+            <h3 id="modal-farmer-name" class="text-2xl font-black text-slate-900">Ramesh Patil</h3>
+            <span id="modal-risk-badge" class="px-3 py-0.5 rounded-full text-xs font-black bg-amber-100 text-amber-800">MEDIUM RISK (52.9)</span>
+          </div>
+          <p id="modal-farmer-sub" class="text-xs text-slate-500 mt-1">📍 Chandwad, Nashik • 🧅 Onion (Harvest Stage)</p>
+        </div>
+        <div class="flex items-center space-x-2">
+          <button id="btn-modal-briefing" onclick="playModalCaseBriefingAudio()" class="px-3 py-1.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs flex items-center space-x-1.5 shadow">
+            <span>🔊</span>
+            <span data-i18n="modalListenBriefing">Listen Case Summary</span>
+          </button>
+          <button onclick="closeOfficerModal()" class="text-slate-400 hover:text-slate-700 text-2xl font-bold p-1">✕</button>
+        </div>
+      </div>
+
+      <!-- Reachability & Channel Guidance -->
+      <div class="bg-blue-50 border border-blue-200 rounded-2xl p-4 space-y-2">
+        <div class="text-xs font-extrabold text-blue-900 uppercase tracking-wider flex items-center space-x-1.5">
+          <span>📡</span>
+          <span data-i18n="modalReachabilityTitle">Field Contact & Reachability Guidance:</span>
+        </div>
+        <div id="modal-reachability-note" class="text-sm font-semibold text-blue-950">
+          Feature Phone on 2G/Poor Network. High tech-illiteracy. <strong>Call directly or dispatch Kisan Mitra VLE. Do NOT rely on app push notifications.</strong>
+        </div>
+      </div>
+
+      <!-- CRIDA 6-Dimension FDI Breakdown -->
+      <div class="space-y-3">
+        <div class="text-xs font-extrabold text-slate-500 uppercase tracking-wider" data-i18n="modalBreakdownTitle">Distress Score Breakdown — ICAR-CRIDA 6-Dimension FDI (Reddy et al., 2021):</div>
+        <div id="modal-dimension-breakdown" class="divide-y divide-slate-100 border border-slate-200 rounded-2xl overflow-hidden bg-slate-50 px-4 py-2">
+          <!-- Populated dynamically by openOfficerModal() -->
+        </div>
+      </div>
+
+      <!-- Explanations List -->
+      <div class="space-y-2">
+        <div class="text-xs font-extrabold text-slate-500 uppercase tracking-wider" data-i18n="modalExplanationsTitle">Contributing Signal Explanations:</div>
+        <ul id="modal-explanations" class="space-y-2 text-sm text-slate-700">
+          <!-- Populated dynamically -->
+        </ul>
+      </div>
+
+      <!-- Landholding Context & District Fragility Index -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-1">
+          <div class="text-xs font-bold text-slate-500 uppercase" data-i18n="modalLandTitle">Landholding Context</div>
+          <div id="modal-land-context" class="text-xs font-semibold text-slate-800">1.2 ha — Marginal Farmer; heightened exposure to price and weather volatility.</div>
+        </div>
+        <div class="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-1">
+          <div class="text-xs font-bold text-slate-500 uppercase" data-i18n="modalFragilityTitle">District Fragility Index (Structural)</div>
+          <div id="modal-fragility-context" class="text-xs font-semibold text-slate-800">Index: 85/100 — High Historical Agrarian Crisis Sensitivity.</div>
+        </div>
+      </div>
+
+      <!-- Actionable Government Scheme Interventions -->
+      <div class="space-y-3">
+        <div class="text-xs font-extrabold text-emerald-800 uppercase tracking-wider flex items-center space-x-1">
+          <span>🏛️</span>
+          <span data-i18n="modalInterventionsTitle">Actionable Scheme Interventions (Field Paperwork to Bring):</span>
+        </div>
+        <div id="modal-interventions" class="space-y-3">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+
+      <div class="pt-4 border-t border-slate-100 flex justify-end">
+        <button onclick="closeOfficerModal()" class="px-6 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm shadow" data-i18n="modalCloseBtn">
+          Close Registry Detail
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="bg-slate-900 text-slate-400 py-6 border-t border-slate-800 text-center text-xs">
+    <div class="max-w-7xl mx-auto px-4 space-y-1">
+      <p class="font-bold text-slate-300">PS-02: Smart Crop Advisory & Farmer Distress Early-Warning System (v3)</p>
+      <p>ICAR-CRIDA FDI Framework (Reddy et al., 2021) • 6-Dimension Distress Model • Pure CRIDA Contingency & MSP Market Interventions</p>
+    </div>
+  </footer>
+
+  <!-- TTS Status Toast -->
+  <div id="tts-toast" class="tts-toast" role="status" aria-live="polite"></div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

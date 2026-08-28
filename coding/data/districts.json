@@ -1,0 +1,32 @@
+[
+  { 
+    "id": "D1", 
+    "name": "Nashik", 
+    "state": "Maharashtra",
+    "soil_type": "Black Cotton Soil", 
+    "avg_rainfall_mm": 120, 
+    "normal_onset_week": "2026-06-10",
+    "historical_vulnerability_index": 85,
+    "description": "Major horticulture hub; prone to severe market price volatility and localized monsoon breaks."
+  },
+  { 
+    "id": "D2", 
+    "name": "Vidarbha", 
+    "state": "Maharashtra",
+    "soil_type": "Red Loamy Soil", 
+    "avg_rainfall_mm": 95, 
+    "normal_onset_week": "2026-06-15",
+    "historical_vulnerability_index": 92,
+    "description": "Historically rainfed cotton-soybean belt with chronic agrarian distress and high climate sensitivity."
+  },
+  { 
+    "id": "D3", 
+    "name": "Konkan", 
+    "state": "Maharashtra",
+    "soil_type": "Laterite Soil", 
+    "avg_rainfall_mm": 250, 
+    "normal_onset_week": "2026-06-05",
+    "historical_vulnerability_index": 30,
+    "description": "High-rainfall coastal belt with well-drained soils and resilient plantation/paddy systems."
+  }
+]

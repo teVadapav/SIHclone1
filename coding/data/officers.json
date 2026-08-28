@@ -1,0 +1,20 @@
+[
+  {
+    "id": "O1",
+    "name": "Dr. Vijay Kulkarni",
+    "designation": "Taluka Agriculture Officer (TAO)",
+    "phone": "+91-94211-88320",
+    "email": "vijay.kulkarni@krishi.maharashtra.gov.in",
+    "assigned_districts": ["D1", "D2"],
+    "office_location": "Division Ag Office, Nashik-Vidarbha Range"
+  },
+  {
+    "id": "O2",
+    "name": "Smt. Shradha Sawant",
+    "designation": "District Agricultural Extension Officer",
+    "phone": "+91-94233-11209",
+    "email": "shradha.sawant@krishi.maharashtra.gov.in",
+    "assigned_districts": ["D3"],
+    "office_location": "Coastal Zone Krishi Bhavan, Ratnagiri"
+  }
+]

@@ -1,0 +1,111 @@
+/* Custom Styles for PS-02 Smart Krishi Application */
+
+@layer utilities {
+  .border-3 {
+    border-width: 3px;
+  }
+}
+
+/* Smooth transitions */
+button, select, input {
+  transition: all 0.15s ease-in-out;
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Audio animation pulse */
+@keyframes audioWave {
+  0%, 100% {
+    transform: scaleY(0.4);
+  }
+  50% {
+    transform: scaleY(1.0);
+  }
+}
+
+.audio-playing {
+  animation: pulse 1.5s infinite;
+}
+
+/* High contrast touch targets for low-literacy users */
+.touch-target {
+  min-height: 48px;
+  min-width: 48px;
+}
+
+/* ── "Tap to Listen" TTS Buttons ──────────────────────────────────────── */
+.tts-listen-btn {
+  border: 1px solid transparent;
+  transition: all 0.18s ease;
+  line-height: 1;
+}
+.tts-listen-btn:hover {
+  transform: scale(1.05);
+}
+.tts-listen-btn:active {
+  transform: scale(0.95);
+}
+.tts-listen-btn.tts-playing {
+  animation: tts-pulse 1.4s ease-in-out infinite;
+  border-color: currentColor;
+}
+
+@keyframes tts-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.55; }
+}
+
+/* ── TTS Status Toast ─────────────────────────────────────────────────── */
+.tts-toast {
+  position: fixed;
+  bottom: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%) translateY(120%);
+  background: rgba(15, 23, 42, 0.92);
+  color: #f1f5f9;
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.5rem 1.2rem;
+  border-radius: 999px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.35);
+  backdrop-filter: blur(8px);
+  z-index: 9999;
+  pointer-events: none;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
+              opacity  0.3s ease;
+  opacity: 0;
+  white-space: nowrap;
+}
+.tts-toast.visible {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+}
+
+/* ── Regional Script Font Overrides ───────────────────────────────────── */
+body.script-odia {
+  font-family: 'Noto Sans Oriya', 'Outfit', sans-serif;
+}
+body.script-assamese {
+  font-family: 'Noto Sans Bengali', 'Outfit', sans-serif;
+}
+body.script-kannada {
+  font-family: 'Noto Sans Kannada', 'Outfit', sans-serif;
+}
+body.script-devanagari {
+  font-family: 'Noto Sans Devanagari', 'Outfit', sans-serif;
+}

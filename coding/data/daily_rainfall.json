@@ -1,0 +1,41 @@
+[
+  {
+    "district_id": "D1",
+    "date": "2026-08-25",
+    "rainfall_last_24h_mm": 0,
+    "cumulative_season_mm": 70,
+    "normal_to_date_mm": 120,
+    "rainfall_deviation_pct": -41.67,
+    "onset_date": "2026-06-12",
+    "onset_status": "normal",
+    "onset_delay_days": 2,
+    "dry_spell_days": 8,
+    "soil_moisture_index": "moderate"
+  },
+  {
+    "district_id": "D2",
+    "date": "2026-08-25",
+    "rainfall_last_24h_mm": 0,
+    "cumulative_season_mm": 55,
+    "normal_to_date_mm": 110,
+    "rainfall_deviation_pct": -50.0,
+    "onset_date": "2026-07-08",
+    "onset_status": "delayed",
+    "onset_delay_days": 23,
+    "dry_spell_days": 16,
+    "soil_moisture_index": "critical_dry"
+  },
+  {
+    "district_id": "D3",
+    "date": "2026-08-25",
+    "rainfall_last_24h_mm": 15.4,
+    "cumulative_season_mm": 270,
+    "normal_to_date_mm": 260,
+    "rainfall_deviation_pct": 3.85,
+    "onset_date": "2026-06-04",
+    "onset_status": "timely",
+    "onset_delay_days": -1,
+    "dry_spell_days": 1,
+    "soil_moisture_index": "adequate"
+  }
+]

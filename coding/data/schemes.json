@@ -1,0 +1,47 @@
+[
+  { 
+    "scheme_id": "S1", 
+    "name": "PMFBY (Pradhan Mantri Fasal Bima Yojana - Crop Insurance)", 
+    "short_name": "PMFBY Crop Insurance",
+    "trigger_signal": "rainfall_deficit",
+    "action_summary": "Issue localized crop loss claim & delayed sowing compensation forms",
+    "portal_url": "https://pmfby.gov.in",
+    "benefit_type": "Insurance Payout / Sowing Failure Relief"
+  },
+  { 
+    "scheme_id": "S2", 
+    "name": "Kisan Credit Card (KCC) Restructuring / Interest Subvention Scheme", 
+    "short_name": "KCC Debt Restructuring",
+    "trigger_signal": "loan_due_proximity",
+    "action_summary": "Initiate bank branch intimation for 12-month loan restructuring and interest subvention",
+    "portal_url": "https://agricoop.gov.in/en/kcc",
+    "benefit_type": "Credit Rescheduling / Liquidity Relief"
+  },
+  { 
+    "scheme_id": "S3", 
+    "name": "PM-AASHA / e-NAM Procurement Support", 
+    "short_name": "PM-AASHA / e-NAM Pledge Support",
+    "trigger_signal": "price_crash",
+    "action_summary": "Register farmer at designated APMC MSP procurement center or facilitate WDRA warehouse pledge loan",
+    "portal_url": "https://enam.gov.in",
+    "benefit_type": "Price Support / Distress Sale Avoidance"
+  },
+  { 
+    "scheme_id": "S4", 
+    "name": "State Drought Relief Package (district-declared)", 
+    "short_name": "State Drought & Fragility Relief",
+    "trigger_signal": "high_vulnerability_index",
+    "action_summary": "Enlist farmer for district vulnerability contingency input assistance & electricity tariff subsidy",
+    "portal_url": "https://mahabhumi.gov.in",
+    "benefit_type": "Input Subsidy & Vulnerability Safety Net"
+  },
+  { 
+    "scheme_id": "S5", 
+    "name": "PM-KISAN Direct Benefit Transfer (installment check)", 
+    "short_name": "PM-KISAN Immediate Installment",
+    "trigger_signal": "loan_due_proximity",
+    "action_summary": "Verify Aadhaar seeding and expedite direct benefit transfer release of ₹2,000",
+    "portal_url": "https://pmkisan.gov.in",
+    "benefit_type": "Immediate Direct Cash Support"
+  }
+]
